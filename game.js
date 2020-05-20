@@ -9,6 +9,7 @@ window.onload = function (){
     const gap = 80;
     let gameOver = false;
     let gameState = 0;
+    const maxYPos = -40;
 
 
 
@@ -27,8 +28,7 @@ window.onload = function (){
         this.height = 160;
         this.x = width;
         if (direction == "U") {
-            // this.y = 0;
-            this.y = (Math.random() + 1) * -40;
+            this.y = (Math.random() + 1) * maxYPos;
         }
     }
     let score = {
@@ -39,7 +39,6 @@ window.onload = function (){
         }
     }
     const emptyStorage = () => {
-        console.warn("localStorage is empty");
         if (localStorage.length == 0) {
             score.high = score.current;
             localStorage.setItem("highScore", score.high);
@@ -50,7 +49,10 @@ window.onload = function (){
 
     // Images
     let birdImg = new Image();
-    birdImg.src = "assets/img/birdImg.png"
+    birdImg.src = "assets/img/birdImg.png";
+
+    let birdImg2 = new Image();
+    birdImg2.src = "assets/img/rotated.jpg";
 
     let land = new Image();
     land.src = "assets/img/land.png";
@@ -89,7 +91,6 @@ window.onload = function (){
             gameState = 1;}
             else {
                 playAgain();
-                console.log("Play agin function");
             }
         }
     });
@@ -128,15 +129,36 @@ window.onload = function (){
         // fBird.y = height / 2;
         location.reload();
     }
+    function rotateBird(img,angle) {
+        ctx.save();
+        ctx.translate(img.width / 2, img.height / 2);
+        ctx.rotate(angle * Math.PI / 180);
+        ctx.drawImage(img, -(img.width / 2), -(img.height / 2), fBird.width, fBird.height);
+        ctx.restore();
+    };
     function drawBird() {
         ctx.drawImage(birdImg, fBird.x, fBird.y, fBird.width, fBird.height);
+        // ctx.drawImage(birdImg, fBird.x, fBird.y, fBird.width, fBird.height);
     }
     function collision() {
         let bottomPipe = (fBird.y >= yDown) && (fBird.x + fBird.width >= pDown.x + pUp.width);
-        let onGround = (fBird.y >= height - 100 - fBird.height / 2);
-        let topPipe = (fBird.y <= yUp + pUp.height) && (fBird.x + fBird.width >= pUp.x); // Need to fix this
+        let topPipe = (fBird.y <= yUp + pUp.height) && (fBird.x + fBird.width >= pUp.x);
 
-        if (bottomPipe || onGround || topPipe) return true;
+        let onGround = (fBird.y >= height - 100 - fBird.height / 2);
+
+        let landbottomPipe = ((fBird.x <= pDown.x + pDown.width) && (fBird.x >= pDown.x)) && (fBird.y  > pDown.y);
+        let landTopPipe = ((fBird.x <= pUp.x + pUp.width) && (fBird.x >= pUp.x)) && (fBird.y <= pUp.y + pUp.height);
+
+        let mouthToBottom = (fBird.x + fBird.width == pDown.x) && (fBird.y >= pDwon.y);
+        let mouthToTop = (fBird.x + fBird.width == pUp.x) && (fBird.y <= pUp.y + pUp.height);
+
+        if (mouthToBottom) console.log("MOUTH TO BOTTOM!!!!");
+        if (mouthToTop) console.log("Mouth to Top");
+        if (landTopPipe) console.log("Land Top pipe");
+        if (landbottomPipe) console.log("land bottom pipe");
+        if (bottomPipe || topPipe) console.log("normal DET+ATH!!!");
+
+        if (bottomPipe || onGround || topPipe || landTopPipe || landbottomPipe || mouthToBottom || mouthToTop) return true;
 
     }
     function drawPipes(yUp, yDown) {
@@ -148,7 +170,7 @@ window.onload = function (){
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(sky, 0, height - 200, width, 100);
         if (pDown.x <= 0) {
-            yUp  = (Math.random() + 1) * -50;
+            yUp  = (Math.random() + 1) * maxYPos;
             yDown =  yUp + 160 + gap;
         }
         drawPipes(yUp, yDown);
